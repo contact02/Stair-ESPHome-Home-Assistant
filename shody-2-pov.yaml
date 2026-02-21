@@ -1,0 +1,326 @@
+esphome:
+  name: shody-2-poverkh
+  friendly_name: Сходи 2 поверх
+
+esp32:
+  board: wemos_d1_mini32
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+  encryption:
+    key: "gw5fbgQSXxtwKUFpOJef57KILohoDtuyl/VpuyLwpOo="
+
+ota:
+  - platform: esphome
+    password: "4036338598efc3d8b8f4e086c6374382"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  manual_ip:
+    static_ip: 192.168.0.132
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+  power_save_mode: NONE
+
+# ================= ГЛОБАЛЬНІ ЗМІННІ =================
+globals:
+  - id: last_direction
+    type: int
+    initial_value: '1'
+  - id: step_state
+    type: int
+    initial_value: '0' 
+  - id: current_frame
+    type: int
+    initial_value: '0'
+  - id: saved_red
+    type: float
+    initial_value: '1.0'
+    restore_value: true
+  - id: saved_green
+    type: float
+    initial_value: '1.0'
+    restore_value: true
+  - id: saved_blue
+    type: float
+    initial_value: '1.0'
+    restore_value: true
+
+# ================= КЕРУВАННЯ =================
+number:
+  - platform: template
+    name: "Stairs Speed"
+    id: stairs_speed
+    min_value: 20
+    max_value: 500
+    step: 10
+    initial_value: 200
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "ms"
+    mode: slider
+
+  - platform: template
+    name: "Stairs Max Brightness"
+    id: stairs_max_brightness
+    min_value: 0
+    max_value: 100
+    step: 5
+    initial_value: 80
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "%"
+    mode: slider
+  - platform: template
+    name: "Stairs Timeout"
+    id: stairs_timeout
+    min_value: 1
+    max_value: 120
+    step: 1
+    initial_value: 10
+    optimistic: true
+    restore_value: true
+    unit_of_measurement: "s"
+    icon: "mdi:timer-sand"
+    mode: slider
+
+select:
+  - platform: template
+    name: "Stairs Current Mode"
+    id: stairs_mode_select
+    options:
+      - "Stairs Steps"
+      - "Static"
+      - "Rainbow"
+    initial_option: "Stairs Steps"
+    optimistic: true
+    restore_value: true
+
+button:
+  # 1. Кнопка перезавантаження самого контролера
+  - platform: restart
+    name: "Stairs Restart Device"
+    id: restart_stairs
+    icon: "mdi:restart"
+
+  # 2. Ваша існуюча кнопка збереження кольору
+  - platform: template
+    name: "Stairs Save Color"
+    id: fix_color_button
+    icon: "mdi:content-save-check"
+    on_press:
+      then:
+        - lambda: |-
+            auto val = id(stairs).remote_values;
+            id(saved_red) = val.get_red();
+            id(saved_green) = val.get_green();
+            id(saved_blue) = val.get_blue();
+            id(stairs_saved_red_sensor).update();
+            id(stairs_saved_green_sensor).update();
+            id(stairs_saved_blue_sensor).update();
+            ESP_LOGD("custom", "Permanent Memory: Colors saved!");
+
+  # 3. Кнопка скидання налаштувань до заводських (стандартних)
+  - platform: template
+    name: "Stairs Reset Settings"
+    id: reset_settings_button
+    icon: "mdi:factory"
+    on_press:
+      then:
+        - lambda: |-
+            // Скидаємо кольори до білого
+            id(saved_red) = 1.0;
+            id(saved_green) = 1.0;
+            id(saved_blue) = 1.0;
+            
+            // Правильний метод для оновлення Number
+            id(stairs_speed).publish_state(100);
+            id(stairs_max_brightness).publish_state(80);
+            
+            // Правильний метод для оновлення Select (передаємо точну назву)
+            id(stairs_mode_select).publish_state("Stairs Steps");
+            
+            // Оновлюємо сенсори
+            id(stairs_saved_red_sensor).update();
+            id(stairs_saved_green_sensor).update();
+            id(stairs_saved_blue_sensor).update();
+            
+            ESP_LOGD("custom", "Settings reset to default!");
+# ================= ДАТЧИКИ =================
+binary_sensor:
+  - platform: gpio
+    id: motion_bottom
+    name: "Stairs Sensor Bottom"
+    pin: {number: GPIO27, mode: INPUT_PULLUP}
+    device_class: motion
+    on_press:
+      then:
+        - script.execute: auto_off
+        - if:
+            condition:
+              lambda: 'return id(step_state) == 0;'
+            then:
+              - if:
+                  condition:
+                    lambda: 'return id(stairs_mode_select).current_option() == "Static";'
+                  then:
+                    - light.turn_on:
+                        id: stairs
+                        brightness: !lambda "return id(stairs_max_brightness).state / 100.0f;"
+                        red: !lambda "return id(saved_red);"
+                        green: !lambda "return id(saved_green);"
+                        blue: !lambda "return id(saved_blue);"
+                    - lambda: 'id(step_state) = 1;'
+                  else:
+                    - lambda: 'id(last_direction) = 1; id(step_state) = 1; id(current_frame) = 0;'
+                    - light.turn_on: {id: stairs, effect: "Stairs Steps"}
+
+  - platform: gpio
+    id: motion_top
+    name: "Stairs Sensor Top"
+    pin: {number: GPIO18, mode: INPUT_PULLUP}
+    device_class: motion
+    on_press:
+      then:
+        - script.execute: auto_off
+        - if:
+            condition:
+              lambda: 'return id(step_state) == 0;'
+            then:
+              - if:
+                  condition:
+                    lambda: 'return id(stairs_mode_select).current_option() == "Static";'
+                  then:
+                    - light.turn_on:
+                        id: stairs
+                        brightness: !lambda "return id(stairs_max_brightness).state / 100.0f;"
+                        red: !lambda "return id(saved_red);"
+                        green: !lambda "return id(saved_green);"
+                        blue: !lambda "return id(saved_blue);"
+                    - lambda: 'id(step_state) = 1;'
+                  else:
+                    - lambda: 'id(last_direction) = 2; id(step_state) = 1; id(current_frame) = 0;'
+                    - light.turn_on: {id: stairs, effect: "Stairs Steps"}
+
+sensor:
+  - platform: template
+    name: "Stairs Saved Red"
+    id: stairs_saved_red_sensor
+    lambda: return id(saved_red);
+    update_interval: never
+  - platform: template
+    name: "Stairs Saved Green"
+    id: stairs_saved_green_sensor
+    lambda: return id(saved_green);
+    update_interval: never
+  - platform: template
+    name: "Stairs Saved Blue"
+    id: stairs_saved_blue_sensor
+    lambda: return id(saved_blue);
+    update_interval: never
+
+# ================= СВІТЛО =================
+light:
+  - platform: esp32_rmt_led_strip
+    id: stairs
+    name: "Stairs Main Light"
+    pin: GPIO4
+    chipset: WS2811
+    num_leds: 149
+    rgb_order: BRG
+    default_transition_length: 0s
+    effects:
+      - addressable_lambda:
+          name: "Stairs Steps"
+          update_interval: 20ms
+          lambda: |-
+            const int total_steps = 16;
+            const int step_pixels[16] = {9,9,9,9,9,10,12,10,9,9,9,9,9,9,9,9};
+            static uint32_t last_tick = 0;
+            if (millis() - last_tick < (uint32_t)id(stairs_speed).state) return;
+            last_tick = millis();
+
+            float final_br = id(stairs).remote_values.get_brightness() * (id(stairs_max_brightness).state / 100.0f);
+
+            if (id(current_frame) < total_steps) {
+              id(current_frame)++;
+            } else {
+              return; 
+            }
+
+            it.all() = Color::BLACK;
+            int ptr = (id(last_direction) == 1) ? 0 : 149;
+            for (int s = 0; s < total_steps; s++) {
+              int count = step_pixels[s];
+              int start_p = (id(last_direction) == 1) ? ptr : ptr - count;
+              if (id(last_direction) == 1) ptr += count; else ptr -= count;
+              
+              if (s < id(current_frame)) {
+                if (id(stairs_mode_select).current_option() == "Rainbow") {
+                  for (int i = start_p; i < start_p + count; i++) {
+                    it[i] = ESPHSVColor(uint8_t((i * 5) + (millis() / 15)), 255, uint8_t(final_br * 255)).to_rgb();
+                  }
+                } else {
+                  it.range(start_p, start_p + count) = Color(uint8_t(id(saved_red)*final_br*255), uint8_t(id(saved_green)*final_br*255), uint8_t(id(saved_blue)*final_br*255));
+                }
+              }
+            }
+
+      - addressable_lambda:
+          name: "Stairs OFF Animation"
+          update_interval: 10ms
+          lambda: |-
+            const int total_steps = 16;
+            const int step_pixels[16] = {9,9,9,9,9,10,12,10,9,9,9,9,9,9,9,9};
+            static uint32_t last_tick = 0;
+            if (millis() - last_tick < (uint32_t)id(stairs_speed).state) return;
+            last_tick = millis();
+
+            float final_br = id(stairs).remote_values.get_brightness() * (id(stairs_max_brightness).state / 100.0f);
+
+            if (id(current_frame) < total_steps) {
+              id(current_frame)++;
+            } else {
+              id(step_state) = 0;
+              auto call = id(stairs).turn_off();
+              call.perform();
+              return;
+            }
+
+            it.all() = Color::BLACK;
+            int ptr = (id(last_direction) == 1) ? 0 : 149;
+            for (int s = 0; s < total_steps; s++) {
+              int count = step_pixels[s];
+              int start_p = (id(last_direction) == 1) ? ptr : ptr - count;
+              if (id(last_direction) == 1) ptr += count; else ptr -= count;
+              if (s >= id(current_frame)) {
+                it.range(start_p, start_p + count) = Color(uint8_t(id(saved_red)*final_br*255), uint8_t(id(saved_green)*final_br*255), uint8_t(id(saved_blue)*final_br*255));
+              }
+            }
+
+# ================= СКРИПТ =================
+script:
+  - id: auto_off
+    mode: restart
+    then:
+      # Замість фіксованого delay: 10s використовуємо лямбду:
+      - delay: !lambda "return id(stairs_timeout).state * 1000;" 
+      - wait_until:
+          and:
+            - binary_sensor.is_off: motion_bottom
+            - binary_sensor.is_off: motion_top
+      - if:
+          condition:
+            lambda: 'return id(stairs_mode_select).current_option() == "Static";'
+          then:
+            - light.turn_off: {id: stairs, transition_length: 2s}
+            - lambda: 'id(step_state) = 0;'
+          else:
+            - lambda: 'id(current_frame) = 0;'
+            - light.turn_on:
+                id: stairs
+                effect: "Stairs OFF Animation"
