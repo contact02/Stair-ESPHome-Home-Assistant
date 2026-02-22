@@ -1,224 +1,101 @@
-type: vertical-stack
+type: horizontal-stack
 cards:
-  - type: custom:mushroom-title-card
-    title: Сходи 2 поверх
-    subtitle: Налаштування параметрів
-  - type: horizontal-stack
-    cards:
-      - type: custom:mushroom-template-card
-        primary: Бвжуча сходинка
-        secondary: Ефект
-        icon: mdi:stairs
-        layout: vertical
-        entity: select.skhodi_2_poverkh_stairs_current_mode
-        icon_color: >-
-          {% if is_state('select.skhodi_2_poverkh_stairs_current_mode', 'Stairs
-          Steps') %} orange {% else %} disabled {% endif %}
-        card_mod:
-          style: |
-            ha-card {
-              {% if is_state('select.skhodi_2_poverkh_stairs_current_mode', 'Stairs Steps') %}
-              background: rgba(var(--rgb-orange), 0.1);
-              border: 1px solid rgba(var(--rgb-orange), 0.5);
-              {% endif %}
-              --rgb-orange: {{ (states('sensor.stairs_saved_red') | float * 255) | round }},
-                            {{ (states('sensor.stairs_saved_green') | float * 255) | round }},
-                            {{ (states('sensor.stairs_saved_blue') | float * 255) | round }};
-            }
-        tap_action:
-          action: call-service
-          service: select.select_option
-          target:
-            entity_id: select.skhodi_2_poverkh_stairs_current_mode
-          data:
-            option: Stairs Steps
-          haptic: light
-      - type: custom:mushroom-template-card
-        primary: Один колір
-        secondary: Постійне
-        icon: mdi:lightbulb-outline
-        layout: vertical
-        entity: select.skhodi_2_poverkh_stairs_current_mode
-        icon_color: >-
-          {% if is_state('select.skhodi_2_poverkh_stairs_current_mode',
-          'Static') %} orange {% else %} disabled {% endif %}
-        card_mod:
-          style: |
-            ha-card {
-              {% if is_state('select.skhodi_2_poverkh_stairs_current_mode', 'Static') %}
-              background: rgba(var(--rgb-orange), 0.1);
-              border: 1px solid rgba(var(--rgb-orange), 0.5);
-              {% endif %}
-              --rgb-orange: {{ (states('sensor.stairs_saved_red') | float * 255) | round }},
-                            {{ (states('sensor.stairs_saved_green') | float * 255) | round }},
-                            {{ (states('sensor.stairs_saved_blue') | float * 255) | round }};
-            }
-        tap_action:
-          action: call-service
-          service: select.select_option
-          target:
-            entity_id: select.skhodi_2_poverkh_stairs_current_mode
-          data:
-            option: Static
-          haptic: light
-      - type: custom:mushroom-template-card
-        primary: Веселка
-        secondary: Кольори
-        icon: mdi:looks
-        layout: vertical
-        entity: select.skhodi_2_poverkh_stairs_current_mode
-        icon_color: >-
-          {% if is_state('select.skhodi_2_poverkh_stairs_current_mode',
-          'Rainbow') %} orange {% else %} disabled {% endif %}
-        card_mod:
-          style: |
-            ha-card {
-              {% if is_state('select.skhodi_2_poverkh_stairs_current_mode', 'Rainbow') %}
-              background: rgba(var(--rgb-orange), 0.1);
-              border: 1px solid rgba(var(--rgb-orange), 0.5);
-              {% endif %}
-              --rgb-orange: {{ (states('sensor.stairs_saved_red') | float * 255) | round }},
-                            {{ (states('sensor.stairs_saved_green') | float * 255) | round }},
-                            {{ (states('sensor.stairs_saved_blue') | float * 255) | round }};
-            }
-        tap_action:
-          action: call-service
-          service: select.select_option
-          target:
-            entity_id: select.skhodi_2_poverkh_stairs_current_mode
-          data:
-            option: Rainbow
-          haptic: light
-  - type: custom:mushroom-light-card
-    entity: light.skhodi_2_poverkh_stairs_main_light
-    use_light_color: true
-    show_brightness_control: false
-    show_color_control: true
-    collapsible_controls: true
-    name: Вмбір кольору
-    icon: mdi:palette
-  - type: custom:mushroom-number-card
-    entity: number.skhodi_2_poverkh_stairs_max_brightness
-    name: Яскравість
-    icon: mdi:brightness-6
-    card_mod:
-      style: |
-        ha-card {
-          --rgb-orange: {{ (states('sensor.skhodi_2_poverkh_stairs_saved_red') | float * 255) | round }},
-                        {{ (states('sensor.skhodi_2_poverkh_stairs_saved_green') | float * 255) | round }},
-                        {{ (states('sensor.skhodi_2_poverkh_stairs_saved_blue') | float * 255) | round }};
-          --icon-color: rgb(var(--rgb-orange)) !important;
-          --control-base-color: rgb(var(--rgb-orange)) !important;
-          --control-color: rgb(var(--rgb-orange)) !important;
-        }
-    icon_color: orange
-  - type: horizontal-stack
-    cards:
-      - type: custom:mushroom-number-card
-        entity: number.skhodi_2_poverkh_stairs_speed
-        name: Швидкість (мс)
-        icon: mdi:speedometer
-        icon_color: amber
-        card_mod:
-          style: |
-            ha-card {
-              --rgb-amber: {{ (states('sensor.skhodi_2_poverkh_stairs_saved_red') | float * 255) | round }},
-                           {{ (states('sensor.skhodi_2_poverkh_stairs_saved_green') | float * 255) | round }},
-                           {{ (states('sensor.skhodi_2_poverkh_stairs_saved_blue') | float * 255) | round }};
-              --icon-color: rgb(var(--rgb-amber)) !important;
-              --control-color: rgb(var(--rgb-amber)) !important;
-              --control-base-color: rgba(var(--rgb-amber), 0.2) !important;
-            }
-      - type: custom:mushroom-number-card
-        entity: number.skhodi_2_poverkh_stairs_timeout
-        name: Час очікування (сек)
-        icon: mdi:timer-sand
-        icon_color: green
-        card_mod:
-          style: |
-            ha-card {
-              --rgb-green: {{ (states('sensor.skhodi_2_poverkh_stairs_saved_red') | float * 255) | round }},
-                           {{ (states('sensor.shody_2_pov_stairs_saved_green') | float * 255) | round }},
-                           {{ (states('sensor.shody_2_pov_stairs_saved_blue') | float * 255) | round }};
-              --icon-color: rgb(var(--rgb-green)) !important;
-              --control-color: rgb(var(--rgb-green)) !important;
-              --control-base-color: rgba(var(--rgb-green), 0.2) !important;
-            }
-  - type: horizontal-stack
-    cards:
-      - type: custom:mushroom-entity-card
-        entity: binary_sensor.skhodi_2_poverkh_stairs_sensor_top
-        name: Сенсор Вгорі
-        icon: mdi:stairs-down
-        icon_color: blue
-        card_mod:
-          style: |
-            ha-card {
-              --rgb-blue: {{ (states('sensor.skhodi_2_poverkh_stairs_saved_red') | float * 255) | round }},
-                          {{ (states('sensor.skhodi_2_poverkh_stairs_saved_green') | float * 255) | round }},
-                          {{ (states('sensor.skhodi_2_poverkh_stairs_saved_blue') | float * 255) | round }};
-            }
-      - type: custom:mushroom-entity-card
-        entity: binary_sensor.skhodi_2_poverkh_stairs_sensor_bottom
-        name: Сенсор Внизу
-        icon: mdi:stairs-up
-        icon_color: blue
-        card_mod:
-          style: |
-            ha-card {
-              --rgb-blue: {{ (states('sensor.skhodi_2_poverkh_stairs_saved_red') | float * 255) | round }},
-                          {{ (states('sensor.skhodi_2_poverkh_stairs_saved_green') | float * 255) | round }},
-                          {{ (states('sensor.skhodi_2_poverkh_stairs_saved_blue') | float * 255) | round }};
-            }
-  - type: horizontal-stack
-    cards:
-      - type: custom:button-card
-        entity: button.skhodi_2_poverkh_stairs_save_color
-        name: Записати
-        icon: mdi:content-save-check
-        color_type: card
-        styles:
-          card:
-            - background-color: |
-                [[[
-                  const getRGB = (id) => (states[id] && states[id].state !== 'unknown') ? parseFloat(states[id].state) : 0.5;
-                  const r = Math.round(getRGB('sensor.skhodi_2_poverkh_stairs_saved_red') * 255);
-                  const g = Math.round(getRGB('sensor.skhodi_2_poverkh_stairs_saved_green') * 255);
-                  const b = Math.round(getRGB('sensor.skhodi_2_poverkh_stairs_saved_blue') * 255);
-                  return `rgb(${r}, ${g}, ${b})`;
-                ]]]
-            - height: 60px
-            - border-radius: 12px
-            - font-weight: bold
-            - color: |
-                [[[
-                  const getRGB = (id) => (states[id] && states[id].state !== 'unknown') ? parseFloat(states[id].state) : 0.5;
-                  const r = getRGB('sensor.skhodi_2_poverkh_stairs_saved_red') * 255;
-                  const g = getRGB('sensor.skhodi_2_poverkh_stairs_saved_green') * 255;
-                  const b = getRGB('sensor.skhodi_2_poverkh_stairs_saved_blue') * 255;
-                  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-                  return brightness > 125 ? 'black' : 'white';
-                ]]]
-            - text-transform: uppercase
-          grid:
-            - grid-template-areas: "\"i n\""
-            - grid-template-columns: 15% 1fr
-        tap_action:
-          action: toggle
-          haptic: heavy
-      - type: custom:mushroom-entity-card
-        entity: button.skhodi_2_poverkh_stairs_reset_settings
-        name: Скинути
-        icon: mdi:factory
-        icon_color: red
-        layout: horizontal
-        tap_action:
-          action: toggle
-      - type: custom:mushroom-entity-card
-        entity: button.skhodi_2_poverkh_stairs_restart_device
-        name: Перезапуск
-        icon: mdi:restart
-        icon_color: orange
-        layout: horizontal
-        tap_action:
-          action: toggle
+  # КНОПКА 1: БІЖУЧА СХОДИНКА
+  - type: custom:button-card
+    entity: select.skhodi_2_poverkh_stairs_current_mode
+    name: Біжуча сходинка
+    label: Ефект
+    show_label: true
+    icon: mdi:stairs
+    # Використовуємо змінні для легкого редагування ID сенсорів
+    variables:
+      r_entity: sensor.skhodi_2_poverkh_stairs_saved_red
+      g_entity: sensor.skhodi_2_poverkh_stairs_saved_green
+      b_entity: sensor.skhodi_2_poverkh_stairs_saved_blue
+      target_mode: 'Stairs Steps'
+    styles: &common_styles
+      card:
+        - height: 80px
+        - border-radius: 12px
+        - background-color: |
+            [[[
+              const r = (states[variables.r_entity]?.state || 0) * 255;
+              const g = (states[variables.g_entity]?.state || 0) * 255;
+              const b = (states[variables.b_entity]?.state || 0) * 255;
+              return entity.state === variables.target_mode 
+                ? `rgba(${r}, ${g}, ${b}, 0.15)` 
+                : 'var(--card-background-color)';
+            ]]]
+        - border: |
+            [[[
+              const r = (states[variables.r_entity]?.state || 0) * 255;
+              const g = (states[variables.g_entity]?.state || 0) * 255;
+              const b = (states[variables.b_entity]?.state || 0) * 255;
+              return entity.state === variables.target_mode 
+                ? `1px solid rgba(${r}, ${g}, ${b}, 0.5)` 
+                : '1px solid var(--divider-color)';
+            ]]]
+      icon:
+        - color: |
+            [[[
+              const r = (states[variables.r_entity]?.state || 0) * 255;
+              const g = (states[variables.g_entity]?.state || 0) * 255;
+              const b = (states[variables.b_entity]?.state || 0) * 255;
+              return entity.state === variables.target_mode 
+                ? `rgb(${r}, ${g}, ${b})` 
+                : 'var(--disabled-text-color)';
+            ]]]
+      name:
+        - font-size: 14px
+        - font-weight: bold
+        - justify-self: start
+      label:
+        - font-size: 11px
+        - justify-self: start
+        - filter: opacity(0.7)
+    tap_action:
+      action: call-service
+      service: select.select_option
+      service_data:
+        entity_id: select.skhodi_2_poverkh_stairs_current_mode
+        option: Stairs Steps
+
+  # КНОПКА 2: ОДИН КОЛІР
+  - type: custom:button-card
+    entity: select.skhodi_2_poverkh_stairs_current_mode
+    name: Один колір
+    label: Постійне
+    show_label: true
+    icon: mdi:lightbulb-outline
+    variables:
+      r_entity: sensor.skhodi_2_poverkh_stairs_saved_red
+      g_entity: sensor.skhodi_2_poverkh_stairs_saved_green
+      b_entity: sensor.skhodi_2_poverkh_stairs_saved_blue
+      target_mode: 'Static'
+    styles: *common_styles
+    tap_action:
+      action: call-service
+      service: select.select_option
+      service_data:
+        entity_id: select.skhodi_2_poverkh_stairs_current_mode
+        option: Static
+
+  # КНОПКА 3: ВЕСЕЛКА
+  - type: custom:button-card
+    entity: select.skhodi_2_poverkh_stairs_current_mode
+    name: Веселка
+    label: Кольори
+    show_label: true
+    icon: mdi:looks
+    variables:
+      r_entity: sensor.skhodi_2_poverkh_stairs_saved_red
+      g_entity: sensor.skhodi_2_poverkh_stairs_saved_green
+      b_entity: sensor.skhodi_2_poverkh_stairs_saved_blue
+      target_mode: 'Rainbow'
+    styles: *common_styles
+    tap_action:
+      action: call-service
+      service: select.select_option
+      service_data:
+        entity_id: select.skhodi_2_poverkh_stairs_current_mode
+        option: Rainbow
